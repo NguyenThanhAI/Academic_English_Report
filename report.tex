@@ -110,7 +110,7 @@
 
 \fancyhf{}
 %\rhead{\textbf{Students: Chi Thanh Nguyen - Duc Thinh Nguyen}}
-\lhead{\textbf{Supervisor: PhD Ngoc Phan Nguyen}}
+\lhead{\textbf{Advisor: PhD. Ngoc Phan Nguyen}}
 \rfoot{\thepage}
 \lfoot{\textbf{Backpropagation in Training Deep Neural Networks}}
 \renewcommand{\headrulewidth}{0.4pt}
@@ -264,7 +264,7 @@ Some popular activation functions:
   \caption{Activation functions}
 \end{figure}
 
-\section{Formulations}
+\section{Backpropagation Formulations}
 
 \begin{itemize}
   \item $a$: A scalar
@@ -287,16 +287,19 @@ Some popular activation functions:
 
 \begin{algorithm}[h!]
   \caption{Training neural network}
+  \hspace*{\algorithmicindent} \textbf{Input:} {A dataset $\mathcal{D}=\Big\lbrace (\bold{x}_1, \bold{y}_1), (\bold{x}_2, \bold{y}_2), \dots, (\bold{x}_S, \bold{y}_S) \Big\rbrace$, a loss function $\mathcal{L}$} \\
+  \hspace*{\algorithmicindent} \textbf{Output:} {A neural network with trained weights $\bold{W}$}
   \begin{algorithmic}[1]
     \State{Initialize neural network weights $\bold{W}$ randomly}
     \While{not converged}
-      \State{Get training sample} (data loading)
+      \State{Get training samples from $\mathcal{D}$} (data loading)
       \State{Calculate neural network output and loss function $\mathcal{L}$} (forward pass)
       \State{Calculate partial derivatives of loss funtion with respect to $\bold{W}$}
       \State{Update neural network weights: \begin{equation*}
         \bold{W} \leftarrow \bold{W} - \alpha  \dfrac{\partial \mathcal{L}}{\partial \bold{W}}
       \end{equation*}}
     \EndWhile
+    \State \Return $\bold{W}$
   \end{algorithmic}
 \end{algorithm}
 
