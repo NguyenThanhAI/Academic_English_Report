@@ -112,7 +112,7 @@
 %\rhead{\textbf{Students: Chi Thanh Nguyen - Duc Thinh Nguyen}}
 \lhead{\textbf{Advisor: PhD. Ngoc Phan Nguyen}}
 \rfoot{\thepage}
-\lfoot{\textbf{Backpropagation in Training Deep Neural Networks}}
+\lfoot{\textbf{Backpropagation For Training Deep Neural Networks}}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
@@ -266,6 +266,7 @@ Some popular activation functions:
 
 \section{Backpropagation Formulations}
 
+\subsection{Notations}
 \begin{itemize}
   \item $a$: A scalar
     \item $\bold{a}$: A vector
@@ -284,6 +285,8 @@ Some popular activation functions:
       \item $\odot$: Element-wise product of two vectors
       \item $\bold{x}=\bold{a}^{(0)}$: input of neural network
 \end{itemize}
+
+\subsection{Backpropagation}
 
 \begin{algorithm}[h!]
   \caption{Training neural network}
@@ -308,6 +311,37 @@ Some popular activation functions:
   \item We can calculate $\dfrac{\partial \mathcal{L}}{\partial \bold{W}}$ by a technique called Backpropagation
 \end{itemize}
 
+Backpropagation was invented in the 1970s as a general optimization method for performing automatic differentiation of complex nested functions. 
+However, it wasn't until 1986, with the publishing of a paper by \cite{rumelhart1986learning}, titled "Learning Representations by Back-Propagating Errors," that the importance of the algorithm was appreciated by the machine learning community at large.
+
+Backpropagation is the essence of neural network training. 
+It is the method of fine-tuning the weights of a neural network based on the error rate obtained in the previous epoch (i.e., iteration). 
+Proper tuning of the weights allows us to reduce error rates and make the model reliable by increasing its generalization.
+
+Backpropagation in neural network is a short form for “backward propagation of errors.” 
+It is a standard method of training artificial neural networks. 
+This method helps calculate the gradient of a loss function with respect to all the weights in the network.
+
+The backpropagation algorithm in neural network computes the gradient of the loss function for a single weight by the chain rule. 
+It efficiently computes one layer at a time, unlike a native direct computation. 
+It computes the gradient, but it does not define how the gradient is used. 
+It generalizes the computation in the delta rule.
+
+The "backwards" part of the name stems from the fact that calculation of the gradient proceeds backwards through the network, with the gradient of the final layer of weights being calculated first and the gradient of the first layer of weights being calculated last. 
+Partial computations of the gradient from one layer are reused in the computation of the gradient for the previous layer. 
+This backwards flow of the error information allows for efficient computation of the gradient at each layer versus the naive approach of calculating the gradient of each layer separately.
+
+Researchers had long been interested in finding a way to train multilayer artificial neural networks that could automatically discover good "internal representations," i.e. features that make learning easier and more accurate. 
+Features can be thought of as the stereotypical input to a specific node that activates that node (i.e. causes it to output a positive value near 1). 
+Since a node's activation is dependent on its incoming weights and bias, researchers say a node has learned a feature if its weights and bias cause that node to activate when the feature is present in its input.
+
+By the 1980s, hand-engineering features had become the de facto standard in many fields, especially in computer vision, since experts knew from experiments which features (e.g. lines, circles, edges, blobs in computer vision) made learning simpler. 
+However, hand-engineering successful features requires a lot of knowledge and practice. More importantly, since it is not automatic, it is usually very slow.
+
+Backpropagation was one of the first methods able to demonstrate that artificial neural networks could learn good internal representations, i.e. their hidden layers learned nontrivial features. 
+Experts examining multilayer feedforward networks trained using backpropagation actually found that many nodes learned features similar to those designed by human experts and those found by neuroscientists investigating biological neural networks in mammalian brains (e.g. certain nodes learned to detect edges, while others computed Gabor filters). Even more importantly, because of the efficiency of the algorithm and the fact that domain experts were no longer required to discover appropriate features, backpropagation allowed artificial neural networks to be applied to a much wider field of problems that were previously off-limits due to time and cost constraints.
+
+
 \begin{itemize}
   \item Backpropagation: Partial derivatives of loss function with respect to outputs of a layer computed by partial derivatives of loss function with respect to outputs of its successive layer
     \item One training step can decompose of 3 stages:
@@ -318,6 +352,15 @@ Some popular activation functions:
   \end{itemize}
 \end{itemize}
 
+The derivation of the backpropagation algorithm is fairly straightforward. It follows from the use of the chain rule and product rule in differential calculus. 
+Application of these rules is dependent on the differentiation of the activation function, one of the reasons the heaviside step function is not used (being discontinuous and thus, non-differentiable).
+
+At the heart of backpropagation is an expression for the partial derivative $\dfrac{\partial \mathcal{L}}{\partial \bold{W}}$ of the loss function $\mathcal{L}$ with respect to any weight $w$ (or bias $b$) in the network. 
+The expression tells us how quickly the loss changes when we change the weights and biases. 
+And while the expression is somewhat complex, it also has a beauty to it, with each element having a natural, intuitive interpretation. 
+And so backpropagation isn't just a fast algorithm for learning. It actually gives us detailed insights into how changing the weights and biases changes the overall behaviour of the network. 
+That's well worth studying in detail.
+
 $\bold{W}^{(l)}$: weights of l-th layer
 \begin{equation*}
 		\bold{W}^{(l)}=\begin{bmatrix} w_{11}^{(l)} & w_{12}^{(l)} & w_{13}^{(l)} & \dots & w_{1d^{(l)}}^{(l)} \\ w_{21}^{(l)} & w_{22}^{(l)} & w_{23}^{(l)} & \dots & w_{2d^{(l)}}^{(l)} \\ \vdots & \thickspace & \thickspace & \thickspace & \vdots \\ w_{d^{(l-1)}1}^{(l)} & w_{d^{(l-1)}2}^{(l)} & w_{d^{(l-1)}3}^{(l)} & \dots & w_{d^{(l-1)}d^{(l)}}^{(l)}\end{bmatrix} \in \mathbb{R}^{d^{(l-1)} \times d^{(l)}}
@@ -327,6 +370,9 @@ $\bold{b}^{(l)}$: biases of l-th layer
 \begin{equation*}
 	  \bold{b}^{(l)}=\begin{bmatrix} b_1^{(l)} \\  b_2^{(l)} \\ \vdots \\ b_{d^{(l)}}^{(l)} \end{bmatrix}
 \end{equation*}
+
+Let's begin with a notation which lets us refer to weights in the network in an unambiguous way. 
+We'll use $w_{ij}^{(l)}$ to denote the weight for the connection from the i-th neuron in the (l-1)th layer to the j-th neuron in the lth layer.
 
 \begin{figure}[h!]
   \centering
@@ -389,10 +435,25 @@ $\bold{b}^{(l)}$: biases of l-th layer
   \caption{2 successive layers visualization}
 \end{figure}
 
-Pre-activated output of neuron i-th of l-th layer:
+This notation is cumbersome at first, and it does take some work to master. 
+But with a little effort you'll find the notation becomes easy and natural. 
+One quirk of the notation is the ordering of the $i$ and $j$ indices. 
+
+We use a similar notation for the network's biases and activations. 
+Explicitly, we use $b_j^{(l)}$ for the bias of the jth neuron in the lth layer. 
+And we use $z_j^{(l)}$ for the pre-activated and $a_j^{(l)}$ for the activation of the jth neuron in the lth layer.
+
+With these notations, the activation $a_j^{(l)}$ of the jth neuron in the lth layer is related to the activations in the (l-1)th layer by the equation:
 \begin{equation}
 	  z_j^{(l)}=\sum_{i=1}^{d^{(l-1)}}w_{ij}^{(l)}a_i^{(l-1)}+b_j^{(l)}=\Big(\bold{W}_{:,j}^{(l)}\Big)^T \bold{a}^{(l-1)} + b_j^{(l)}
 \end{equation}
+
+where the sum is over all neurons i in the (l-1)th layer.
+To rewrite this expression in a matrix form we define a weight matrix $\bold{W}^{(l)}$ for each layer l. 
+The entries of the weight matrix $\bold{W}^{(l)}$ are just the weights connecting to the lth layer of neurons, that is, the entry in the i-th row and jth column is $w_{ij}^{(l)}$. 
+Similarly, for each layer l we define a bias vector, $\bold{b}^{(l)}$. 
+You can probably guess how this works - the components of the bias vector are just the values $b_j^{(l)}$, one component for each neuron in the lth layer. 
+And finally, we define an activation vector $\bold{a}^{(l)}$ whose components are the activations $a_j^{(l)}$.
 
 Activated output of neuron i-th of l-th layer:
 \begin{equation}
@@ -506,12 +567,23 @@ Activated output in matrix form:
   \caption{3 layers visualization}
 \end{figure}
 
+When we need to compute $\bold{a}^{(l)}$, we compute the intermediate quantity $\bold{z}^{(l)}=\Big(\bold{W}^{(l)}\Big)^T\bold{a}^{(l-1)} + \bold{b}^{(l)}$ is the pre-activated output of j-th neuron of l-th layer.
+This quantity turns out to be useful enough to be worth naming: we call $\bold{z}^{(l)}$ the weighted input to the neurons in layer l. 
+We'll make considerable use of the weighted input $\bold{z}^{(l)}$ or pre-activated output.
+It's also worth noting that $\bold{z}^{(l)}$ has components $\bold{z}_j^{(l)}$, that is, $\bold{z}_j^{(l)}$ is just the weighted input to the activation function for neuron j in layer l.
+
 Loss function:
 \begin{equation}
 	  \mathcal{L} = \ell\Big(\bold{a}^{(L)}, \bold{y} \Big)
 \end{equation}
 
-We need to calculate partial derivatives of $\mathcal{L}$ with respect to all $\bold{W}^{(l)}$ and $\bold{b}^{(l)}, l=1, \dots, L$:
+Backpropagation is about understanding how changing the weights and biases in a network changes the cost function. 
+Ultimately, this means computing the partial derivatives $\dfrac{\partial \mathcal{L}}{\partial w_{ij}^{(l)}}$ and $\dfrac{\partial \mathcal{L}}{\partial b_{j}^{(l)}}$. 
+But to compute those, we first introduce an intermediate quantity, $e_j^{(l)}$, which we call the error in the jth neuron in the lth layer. 
+Backpropagation will give us a procedure to compute the error $e_j^{(l)}$, and then will relate $e_j^{(l)}$ to $\dfrac{\partial \mathcal{L}}{\partial w_{ij}^{(l)}}$ and $\dfrac{\partial \mathcal{L}}{\partial b_{j}^{(l)}}$.
+
+We need to calculate partial derivatives of $\mathcal{L}$ with respect to all $\bold{W}^{(l)}$ and $\bold{b}^{(l)}, l=1, \dots, L$.
+The derivation of the backpropagation algorithm begins by applying the chain rule to the error function partial derivative
 
 \begin{equation}
   \dfrac{\partial \mathcal{L}}{w_{ij}^{(l)}}=\dfrac{\partial \mathcal{L}}{\partial z_{j}^{(l)}}\dfrac{\partial z_j^{(l)}}{w_{ij}^{(l)}}=\dfrac{\partial \mathcal{L}}{\partial z_{j}^{(l)}}a_i^{(l-1)}
@@ -634,6 +706,7 @@ At l-th layer ($1 \leq l < L$):
 	\Rightarrow \begin{cases} \dfrac{\partial \mathcal{L}}{\partial \bold{W}^{(l)}}=\bold{a}^{(l-1)}\Big(\bold{e}^{(l)}\Big)^T \\ \dfrac{\partial \mathcal{L}}{\partial \bold{b}^{(l)}}=\bold{e}^{(l)} \end{cases}
 \end{equation}
 
+Now the question arises of how to calculate the partial derivatives of layers other than the output layer. Fortunately, the chain rule for multivariate functions comes to the rescue again. Observe the following equation for the error term $e_j^{(l)}$.
 We consider $\mathcal{L} = \mathcal{L}\Big(\bold{z}^{(l+1)}\Big)=\mathcal{L}\Big(z_1^{(l+1)}, z_2^{(l+1)}, \dots, z_{d^{(l+1)}}^{(l+1)}\Big)$:
 \begin{equation}
 	\begin{aligned}
@@ -652,6 +725,8 @@ In matrix form:
 \begin{equation}
   \bold{e}^{(l)}=\bold{W}^{(l+1)}\bold{e}^{(l+1)}\odot\bold{f}^{\prime}(\bold{z}^{(l)})
 \end{equation}
+
+This equation reflects the true meaning of "Backpropagation".
 
 \begin{figure}[h!]
   \centering
