@@ -147,7 +147,18 @@
 \end{center}
 \addcontentsline{toc}{section}{{\bf Introduction}\rm}
 
-\section{Introduction to Deep Neural Networks}
+Having witnessed three previous industrial revolutions, humanity is now in the midst of the fourth industrial revolution, which has massively transformed our world, driven by artificial intelligence (AI) and big data. Lying at the heart of AI, artificial neural networks have enjoyed explosive growth during the last 30 years. Although there have been many neural network models, the model that predominates in the area of pattern recognition or classification is the feedforward/backpropagation network. 
+At its core, backpropagation is simply an efficient and exact method for calculating all the derivatives of a single target quantity (such as pattern classification error) with respect to a large set of input quantities (such as the parameters or weights in a classification rule). Backpropagation through time extends this method so that it applies to dynamic systems. This allows one to calculate the derivatives needed when optimizing an iterative analysis procedure, a neural network with memory, or a control system which maximizes performance over time. In this essay, we will mainly concentrate on applications of backpropagation in training deep neural networks, hence its title “Backpropagation for training deep neural networks”.
+We would like to thank Dr. Nguyen Ngoc Phan for his fascinating lectures during the course and for serving as an advisor on this project. We are grateful to him for not only providing timely instruction but also inspiring us in other aspects of our academic and personal development. 
+
+\newpage
+\section{Fundamentals}
+
+In this section, we will briefly introduce some fundamental background on backpropagation and deep neural networks, commencing from basic concepts of deep neural networks, moving to the role of backpropagation for training such networks.
+
+\subsection{Neural network unit}
+
+A neural network unit is a primitive neural network that consists of only the “input layer", and an output layer with only one output. It is represented pictorially as follows:
 
 \begin{figure}[h!]
   \centering
@@ -176,6 +187,62 @@
   \caption{Single neuron model}
   \label{fig:Single neuron model}
 \end{figure}
+
+A neural network unit computes a non-linear weighted combination of its input:
+
+\begin{equation}
+  \begin{cases}z=\displaystyle\sum_{i=1}^d w_i x_i + b \\ a = \mathbf{f}(z) \end{cases}
+\end{equation}
+
+where $w_i$ are numbers called weights, $z$ is a number and is the weighted sum of the inputs $x_i$ and $\bold{f}$ is generally a non-linear function called the activation function.
+In terms of activation functions, there are quite a few ones being used in neural networks nowadays, but the following functions seem to be the most popular:
+
+Some popular activation functions:
+
+\begin{itemize}
+  \item ReLU:
+  \begin{equation*}
+    \bold{f}(z) = \max(0, z)
+  \end{equation*}
+  \item Sigmoid:
+  \begin{equation*}
+    \bold{f}(z) = \dfrac{1}{1 + e^{-z}}
+  \end{equation*}
+  \item Tanh:
+  \begin{equation*}
+    \bold{f}(z) = \dfrac{e^z - e^{-z}}{e^z + e^{-z}}
+  \end{equation*}
+  \item Leaky ReLU:
+  \begin{equation*}
+    \bold{f}(z)=\max(z, \alpha z) \text{ for } 0 < \alpha < 1
+  \end{equation*}
+  \item ELU:
+  \begin{equation*}
+    \bold{f}(z) = \begin{cases} z \text{ for } z \geq 0 \\ \alpha (e^z - 1) \text{ for } z < 0 \end{cases}
+  \end{equation*}
+  \item GELU:
+  \begin{equation*}
+    \bold{f}(z)=0.5 z \Bigg( 1 + \dfrac{2}{\sqrt{\pi}} \int_0^{\frac{z}{\sqrt{2}}} e^{-x^2}dx \Bigg)
+  \end{equation*}
+  \item Swish:
+  \begin{equation*}
+    \bold{f}(z) = \dfrac{z}{1 + e^{-z}}
+  \end{equation*}
+  \item Softplus:
+  \begin{equation*}
+    \bold{f}(z) = \ln(1 + e^z)
+  \end{equation*}
+\end{itemize}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=12cm]{activation_functions.png}
+  \caption{Activation functions}
+\end{figure}
+
+\subsection{Deep Neural Networks}
+
+A deep (feedforward) neural network refers to a neural network that contains not only the input and output layers, but also hidden layers in between. For example, below is a deep feedfoward neural network of 3 hidden layers, with each hidden layer consisting of $d^{(l)}$ units:
 
 \begin{figure}[h!]
   \centering
@@ -221,48 +288,13 @@
   \caption{Neural network with 3 hidden layers}
 \end{figure}
 
-Some popular activation functions:
+One of the main advantages of deep neural networks is that in many cases, they can learn to extract very complex and sophisticated features from just the raw features presented to them as their input. For instance, in the context of image recognition, neural networks can extract the features that differentiate a cat from a dog based only on the raw pixel data presented to them from images.
 
-\begin{itemize}
-  \item ReLU:
-  \begin{equation*}
-    \bold{f}(z) = \max(0, z)
-  \end{equation*}
-  \item Sigmoid:
-  \begin{equation*}
-    \bold{f}(z) = \dfrac{1}{1 + e^{-z}}
-  \end{equation*}
-  \item Tanh:
-  \begin{equation*}
-    \bold{f}(z) = \dfrac{e^z - e^{-z}}{e^z + e^{-z}}
-  \end{equation*}
-  \item Leaky ReLU:
-  \begin{equation*}
-    \bold{f}(z)=\max(z, \alpha z) \text{ for } 0 < \alpha < 1
-  \end{equation*}
-  \item ELU:
-  \begin{equation*}
-    \bold{f}(z) = \begin{cases} z \text{ for } z \geq 0 \\ \alpha (e^z - 1) \text{ for } z < 0 \end{cases}
-  \end{equation*}
-  \item GELU:
-  \begin{equation*}
-    \bold{f}(z)=0.5 z \Bigg( 1 + \dfrac{2}{\sqrt{\pi}} \int_0^{\frac{z}{\sqrt{2}}} e^{-x^2}dx \Bigg)
-  \end{equation*}
-  \item Swish:
-  \begin{equation*}
-    \bold{f}(z) = \dfrac{z}{1 + e^{-z}}
-  \end{equation*}
-  \item Softplus:
-  \begin{equation*}
-    \bold{f}(z) = \ln(1 + e^z)
-  \end{equation*}
-\end{itemize}
+The initial few layers of a neural network typically capture the simpler and smaller features whereas the later layers use information from these low-level features to identify more complex and sophisticated features.
 
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=12cm]{activation_functions.png}
-  \caption{Activation functions}
-\end{figure}
+\subsection{The role of backpropagation in training deep neural networks}
+
+In Artificial Neural Networks (ANN), proper training of a neural network is the most important aspect of producing a reliable model. This training is usually associated with the term “Backpropagation”, which is highly vague to most people getting into Deep Learning. Back-propagation is the essence of neural net training. It is the practice of fine-tuning the weights of a neural net based on the error rate (the loss) obtained in the previous epoch (or iteration). Proper tuning of the weights ensures lower error rates after each time of being updated, making the model valid and reliable by increasing its generalization.
 
 \section{Backpropagation Formulations}
 
@@ -726,7 +758,16 @@ In matrix form:
   \bold{e}^{(l)}=\bold{W}^{(l+1)}\bold{e}^{(l+1)}\odot\bold{f}^{\prime}(\bold{z}^{(l)})
 \end{equation}
 
-This equation reflects the true meaning of "Backpropagation".
+This equation is where backpropagation gets its name. 
+Namely, the error $\bold{e}^{(l)}$ is dependent on the errors $\bold{e}^{(l+1)}$.
+Thus, errors flow backward, from the last layer to the first layer. 
+All that is needed is to compute the first error terms based on the computed output $\hat{\bold{y}}$ and the target output $\bold{y}$.
+Then, the error terms for the previous layer are computed by performing a product sum (weighted by $w_{jk}^{(l+1)}$) of the error terms for the next layer and scaling by $\bold{f}^{\prime}(z_j^{(l)})$, repeated until the input layer is reached.
+
+
+This backwards propagation of errors is very similar to the forward computation that calculates the neural network's output. Thus, calculating the output is often called the forward pass while calculating the error terms and derivatives is often called the backward pass.
+While going in the forward direction, the inputs are repeatedly recombined from the first layer to the last by product sums dependent on the weights $w_{ij}^{(l)}$.
+In the backward direction, the "inputs" are the final layer's error terms, which are repeatedly recombined from the last layer to the first by product sums dependent on the weights $w_{jk}^{(l+1)}$.
 
 \begin{figure}[h!]
   \centering
