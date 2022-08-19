@@ -1074,7 +1074,7 @@ Softmax function for classification problem:
 Softmax cross entropy loss:
 
 \begin{equation}
-  \mathcal{L}=\sum_{j=1}^{d^{(L)}}-y_j \log a_j^{(L)}+(1-y_j)\log(1-a_j^{(L)})
+  \mathcal{L}=\sum_{j=1}^{d^{(L)}}-y_j \log a_j^{(L)}-(1-y_j)\log(1-a_j^{(L)})
 \end{equation}
 
 Compute partial derivatives of cross entropy loss with respect to $\bold{z}^{(L)}$:
@@ -1099,8 +1099,13 @@ Compute partial derivatives of cross entropy loss with respect to $\bold{z}^{(L)
 
 \section{Experiment}
 
-The experiment uses the dataset \href{https://github.com/zalandoresearch/fashion-mnist}{Fashion Mnist} which contains 70,000 grayscale images in 10 categories
+\subsection{Fashion Mnist Dataset}
 
+The experiment uses the dataset \href{https://github.com/zalandoresearch/fashion-mnist}{Fashion Mnist} which contains 70,000 grayscale images in 10 categories
+The Fashion Mnist clothing dataset is a new standard one used in computer vision (CV) and deep learning (DL).
+
+Although the dataset is relatively simple, it can be used as the basis for learning and practicing how to develop, evaluate, and use deep convolutional neural networks for image classification from scratch. 
+This includes how to develop a robust test harness for estimating the performance of the model, how to explore improvements to the model, and how to save the model and later load it to make predictions on new data.
 The images show individual articles of clothing at low resolution (28 x 28 pixels)
 
 Divided into two sets:
@@ -1134,11 +1139,39 @@ The labels are an array of integers, ranging from 0 to 9. These correspond to th
   \caption{Mapping label to class name}
 \end{table}
 
+It is a more challenging classification problem than MNIST and top results are achieved by deep learning convolutional neural networks with a classification accuracy of about 90\% to 95\% on the hold out test dataset.
+
 \begin{figure}[h!]
   \centering
   \includegraphics[width=8cm]{sample_images_with_labels.png}
   \caption{Sample images with labels}
 \end{figure}
+
+Fashion Mnist was proposed to be a replacement for MNIST, and although it has not been solved, it is possible to routinely achieve error rates of 10\% or less. 
+Like MNIST, it can be a useful starting point for developing and practicing a methodology for solving image classification using neural networks.
+
+Instead of reviewing the literature on well-performing models on the dataset, we can develop a new model from scratch.
+The dataset already has a well-defined train and test dataset that we can use.
+
+\subsection{Data Loading}
+
+For example, we know that the images are all pre-segmented (e.g. each image contains a single item of clothing), that the images all have the same square size of 28x28 pixels, and that the images are grayscale. Therefore, we can load the images and reshape the data arrays to have a single color channel.
+
+We also know that there are 10 classes and that classes are represented as unique integers.
+We can, therefore, use a one hot encoding for the class element of each sample, transforming the integer into a 10 element binary vector with a 1 for the index of the class value.
+
+The pixel values for each image in the dataset are unsigned integers in the range between black and white, or 0 and 255.
+We do not know the best way to scale the pixel values for modeling, but we know that some scaling will be required.
+A good starting point is to normalize the pixel values of grayscale images, e.g. rescale them to the range [0,1]. 
+This involves first converting the data type from unsigned integers to floats, then dividing the pixel values by the maximum value.
+
+\subsection{Model training and analysis}
+
+We define a fully connected neural network model for the experiment.
+Our neural network contains 2 hidden layers. The input layer size 784-d (equals size of flattened input image),
+the first hiddlen layer with 128 units followed by second hidden layer with the same number of units.
+Given that the problem is a multi-class classification, we know that we will require an output layer with 10 units in order to predict the probability distribution of an image belonging to each of the 10 classes. 
+This will also require the use of a softmax activation function.
 
 Network architecture and hyperparameters:
 \begin{itemize}
@@ -1196,28 +1229,51 @@ Network architecture and hyperparameters:
   \caption{Neural network architecture used in experiment}
 \end{figure}
 
+ReLU is our activation function after each hidden layers. We use He-Kaiming weight initialization scheme.
+We use stochastic gradient descent with multiple bands of learning rate to find optimal learning rate.
+The categorical cross-entropy loss function will be optimized, suitable for multi-class classification, and we will monitor the classification accuracy metric, which is appropriate given we have the same number of examples in each of the 10 classes.
+
+
+
 \begin{figure}[h!]
   \centering
   \includegraphics[width=15cm]{learning_rate_comparisons.png}
   \caption{Result with different learning rates}
+  \label{fig:learning_rate}
 \end{figure}
+
+We train the model for 250 epochs for each learning rate. 
+The results of the accuracy and the loss function are shown in figure \ref{fig:learning_rate}.
+
+We find that with a low learning rate, the decrease in the loss function and the increase in accuracy are very slow. 
+But with very large learning rate, the accuracy curve and loss function fluctuate greatly even leading to divergence.
+We figure out a learning rate of about 0.01, the loss function on the test set decreases steadily and the accuracy on the test set increases the most. 
+So we consider the learning rate 0.01 as the optimal learning rate
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=12cm]{images_with_predictions_1.png}
   \caption{Images with prediction from trained neural network}
+  \label{fig:predict_1}
 \end{figure}
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=15cm]{images_with_predictions_2.png}
   \caption{Images with prediction from trained neural network}
+  \label{fig:predict_2}
 \end{figure}
+
+Figures \ref{fig:predict_1} and \ref{fig:predict_2} show the model's prediction results after being trained with the input images. 
+The height of the column corresponding to a class is the probability that the model predicts that the input image belongs to the corresponding class. The blue column corresponds to the desired class. The red column corresponds to the class with the highest probability (as predicted by the model) not to coincide with the desired class. 
+The gray columns are the classes with no highest probability and also not the desired class.
+
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=12cm]{confusion_matrix.png}
   \caption{Confusion matrix}
+  \label{fig:confusion_matrix}
 \end{figure}
 
 \begin{table} [h!]
@@ -1239,15 +1295,25 @@ Network architecture and hyperparameters:
   \hline
   \end{tabular}
   \caption{Classification report of neural network on test set}
+  \label{table:metrics}
 \end{table}
 
-\section{Conclusion}
+Table \ref{table:metrics} shows the classification report of each class on the measures of accuracy, recall, F1-score, and the main support level is the number of elements corresponding to each class. 
+We see that bag and sandal have the highest F-1 score because these classes look quite different from the rest.
 
-\begin{itemize}
-  \item Introduce neural network
-    \item Backpropagation in Multilayer Perceptron
-    \item Experiment on \href{https://github.com/zalandoresearch/fashion-mnist}{Fashion Mnist}
-\end{itemize}
+Figure \ref{fig:confusion_matrix} shows the confusion matrix. 
+The horizontal axis corresponds to the class predicted by the model, the vertical axis corresponds to the correct class. 
+We observe that the Shirt class is often mistakenly predicted by the model as Tshirt/top and Pullover classes because these classes are quite similar.
+
+\section{Conclusion and Future Direction}
+
+In this essay, we have mentioned artificial neural networks and backpropagation algorithms. 
+We have implemented the algorithm and applied it on the Fashion-Mnist dataset. 
+However, this is only the simplest case in neural networks. In addition to the fully connected neural network structure, there are many other types of more complex and commonly used neural networks, especially convolutional neural networks. 
+In the next steps of development, we will study convolutional neural networks and backpropagation algorithms for convolutional neural networks. 
+The backpropagation algorithm for convolutional neural networks is not as simple as in the case of fully connected neural networks because a neuron is not connected to all neurons in the layer immediately preceding and succeeding it.
+In addition, we need to study more about backpropagation algorithms in recurrent neural networks to model sequential data. 
+The backpropagation algorithm in this type of neural network is extremely complicated, also known as backpropagation through time, which leads to difficult problems in neural network training such as gradient vanishing and gradient exploding.
 
 \newpage
 \addcontentsline{toc}{section}{References}
